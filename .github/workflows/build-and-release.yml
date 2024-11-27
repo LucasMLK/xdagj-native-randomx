@@ -8,7 +8,7 @@ on:
     branches:
       - master
 jobs:
-  build-randomx:
+  build:
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
@@ -62,52 +62,56 @@ jobs:
         with:
           submodules: true
 
-      - name: Install dependencies
+      - name: Set up dependencies
+        if: runner.os == 'Windows'
+        shell: pwsh
         run: |
-          if [ "${{ matrix.os }}" == "ubuntu-latest" ]; then
-            sudo apt-get update && sudo apt-get install -y cmake build-essential
-          elif [ "${{ matrix.os }}" == "macos-latest" ]; then
-            brew install cmake
-          elif [ "${{ matrix.os }}" == "windows-latest" ]; then
-            choco install cmake --installargs 'ADD_CMAKE_TO_PATH=System'
-          fi
-        shell: bash
+          choco install mingw -y
+          choco install cmake --installargs '"ADD_CMAKE_TO_PATH=System"'
 
-      - name: Compile RandomX
+      - name: Set up dependencies
+        if: runner.os != 'Windows'
+        run: |
+          if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
+            sudo apt-get update && sudo apt-get install -y cmake build-essential
+          elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
+            brew install cmake
+          fi
+
+      - name: Build Native Libraries
+        shell: bash
         run: |
           cd randomx
           mkdir build && cd build
           cmake .. ${{ matrix.cmake_args }}
           make
-          mkdir -p ../../src/main/resources/native
+          mkdir -p ${{ github.workspace }}/native-libs/${{ matrix.os }}
           if [[ "${{ matrix.os }}" == "ubuntu-latest" ]]; then
-            cp *.so ../../src/main/resources/native/${{ matrix.output_lib }}
+            cp *.so ${{ github.workspace }}/native-libs/${{ matrix.os }}/
           elif [[ "${{ matrix.os }}" == "macos-latest" ]]; then
-            cp *.dylib ../../src/main/resources/native/${{ matrix.output_lib }}
+            cp *.dylib ${{ github.workspace }}/native-libs/${{ matrix.os }}/
           elif [[ "${{ matrix.os }}" == "windows-latest" ]]; then
-            cp *.dll ../../src/main/resources/native/${{ matrix.output_lib }}
+            cp *.dll ${{ github.workspace }}\\native-libs\\${{ matrix.os }}\\
           fi
-        shell: bash
 
-      - name: Archive artifact
+      - name: Upload Native Libraries
         uses: actions/upload-artifact@v4
         with:
-          name: ${{ matrix.artifact_name }}
-          path: src/main/resources/native/
+          name: native-libs-${{ matrix.os }}
+          path: ${{ github.workspace }}/native-libs/${{ matrix.os }}/
 
-  build-java:
-    runs-on: ubuntu-latest
-    needs: build-randomx
+package:
+  runs-on: ubuntu-latest
+    needs: build
     steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Download Dynamic Link Library Artifacts
+      - name: Download Native Libraries
         uses: actions/download-artifact@v4
         with:
+          name: 'native-libs-*'
           path: src/main/resources/native/
-          pattern: librandomx-*
-      - run: ls src/main/resources/native/
 
       - name: Set up JDK
         uses: actions/setup-java@v4
@@ -128,7 +132,7 @@ jobs:
             src/main/resources/native/
 
   release:
-    needs: build-java
+    needs: package
     runs-on: ubuntu-latest
     steps:
       - name: Checkout code
