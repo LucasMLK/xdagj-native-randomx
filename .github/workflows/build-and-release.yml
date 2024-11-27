@@ -99,11 +99,11 @@ jobs:
         with:
           name: native-libs-${{ matrix.os }}
           path: ${{ github.workspace }}/native-libs/${{ matrix.os }}/
-
-package:
-  runs-on: ubuntu-latest
-    needs: build
-    steps:
+          
+  package:
+   runs-on: ubuntu-latest
+   needs: build
+   steps:
       - name: Checkout code
         uses: actions/checkout@v4
 
