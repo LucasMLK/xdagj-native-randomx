@@ -152,10 +152,15 @@ jobs:
         echo "- Build improvements." >> RELEASE_NOTES.md
         echo "- Known issues: None." >> RELEASE_NOTES.md
 
+    - name: Debug Maven Build Output
+      run: |
+        echo "Listing target directory contents:"
+        ls -al target/
+    
     - name: Find Main JAR File
       id: find_jar
       run: |
-        JAR_FILE=$(ls target/xdagj-native-randomx-*.jar | grep -v sources | grep -v javadoc | head -n 1 || echo "")
+        JAR_FILE=$(find target/ -type f -name "*.jar" | grep -v sources | grep -v javadoc | head -n 1 || echo "")
         if [ -z "$JAR_FILE" ]; then
           echo "Error: No main JAR file found!"
           exit 1
