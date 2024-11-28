@@ -134,6 +134,9 @@ jobs:
     - name: Checkout code
       uses: actions/checkout@v4
 
+    - name: Install gh CLI
+      run: sudo apt-get install -y gh
+
     - name: Extract Version from pom.xml
       id: extract_version
       run: |
@@ -141,8 +144,27 @@ jobs:
         echo "VERSION=$VERSION" >> $GITHUB_ENV
         echo "Extracted version: $VERSION"
 
-    - name: Generate Detailed Release Notes
-      id: release_notes
+    - name: Download JAR Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: xdagj-native-randomx-jar
+        path: target/
+
+    - name: List Target Directory
+      run: ls -al target/
+    
+    - name: Find Main JAR File
+      id: find_jar
+      run: |
+        JAR_FILE=$(find target/ -type f -name "xdagj-native-randomx-*.jar" | head -n 1)
+        if [ -z "$JAR_FILE" ]; then
+          echo "Error: No main JAR file found!"
+          exit 1
+        fi
+        echo "Found JAR file: $JAR_FILE"
+        echo "jar_file=$JAR_FILE" >> $GITHUB_ENV
+
+    - name: Generate Release Notes
       run: |
         echo "### Changelog" > RELEASE_NOTES.md
         echo "" >> RELEASE_NOTES.md
@@ -152,50 +174,14 @@ jobs:
         echo "- Build improvements." >> RELEASE_NOTES.md
         echo "- Known issues: None." >> RELEASE_NOTES.md
 
-    - name: Download JAR Artifact
-      uses: actions/download-artifact@v4
-      with:
-        name: xdagj-native-randomx-jar
-        path: target/
-    
-    - name: Find Main JAR File
-      id: find_jar
+    - name: Create Release using gh CLI
       run: |
-        JAR_FILE=$(find target/ -type f -name "*.jar" | grep -v sources | grep -v javadoc | head -n 1 || echo "")
-        if [ -z "$JAR_FILE" ]; then
-          echo "Error: No main JAR file found!"
-          exit 1
-        fi
-        echo "Found JAR file: $JAR_FILE"
-        echo "jar_file=$JAR_FILE" >> $GITHUB_ENV
-
-    - name: Generate SHA256 Checksum
-      id: checksum
-      run: |
-        if [ "${{ matrix.os }}" == "macos-latest" ]; then
-          shasum -a 256 ${{ env.jar_file }} > checksum.txt
-        else
-          sha256sum ${{ env.jar_file }} > checksum.txt
-        fi
-        echo "checksum=$(cat checksum.txt)" >> $GITHUB_ENV
-
-    - name: Create Release
-      id: create_release
-      uses: actions/create-release@v1
+        gh release create "v${{ env.VERSION }}" --title "xdagj-native-randomx v${{ env.VERSION }}" --notes-file RELEASE_NOTES.md
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        tag_name: v${{ env.VERSION }}
-        release_name: xdagj-native-randomx v${{ env.VERSION }}
-        body_path: RELEASE_NOTES.md
-        draft: false
 
-    - name: Upload JAR with Native Libraries
-      uses: actions/upload-release-asset@v1
+    - name: Upload JAR using gh CLI
+      run: |
+        gh release upload "v${{ env.VERSION }}" ${{ env.jar_file }} --clobber --label "xdagj-native-randomx.jar"
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-      with:
-        upload_url: ${{ steps.create_release.outputs.upload_url }}
-        asset_path: ${{ env.jar_file }}
-        asset_name: xdagj-native-randomx.jar
-        asset_content_type: application/java-archive
