@@ -131,58 +131,70 @@ jobs:
     runs-on: ubuntu-latest
     needs: build-java
     steps:
-      - name: Download JAR
-        uses: actions/download-artifact@v4
-        with:
-          name: xdagj-native-randomx-jar
-          path: target/
+    - name: Checkout code
+      uses: actions/checkout@v4
 
-      - name: Generate Detailed Release Notes
-        id: release_notes
-        run: |
-            echo "### Changelog" > RELEASE_NOTES.md
-            echo "" >> RELEASE_NOTES.md
-            echo "$(git log --pretty=format:"* %s (%h)" $(git describe --tags --abbrev=0)..HEAD)" >> RELEASE_NOTES.md
-            echo "" >> RELEASE_NOTES.md
-            echo "### Additional Notes" >> RELEASE_NOTES.md
-            echo "- Build improvements." >> RELEASE_NOTES.md
-            echo "- Known issues: None." >> RELEASE_NOTES.md
-            echo "release_notes=$(cat RELEASE_NOTES.md)" >> $GITHUB_ENV
+    - name: Extract Version from pom.xml
+      id: extract_version
+      run: |
+        VERSION=$(mvn help:evaluate -Dexpression=project.version -q -DforceStdout)
+        echo "VERSION=$VERSION" >> $GITHUB_ENV
+        echo "Extracted version: $VERSION"
 
-      - name: Find Main JAR File
-        id: find_jar
-        run: |
-            JAR_FILE=$(ls target/xdagj-native-randomx-*.jar | grep -v sources | grep -v javadoc | head -n 1)
-            echo "Found JAR file: $JAR_FILE"
-            echo "jar_file=$JAR_FILE" >> $GITHUB_ENV
+    - name: Generate Detailed Release Notes
+      id: release_notes
+      run: |
+        echo "### Changelog" > RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "$(git log --pretty=format:"* %s (%h)" --no-merges $(git rev-list --tags --max-count=1)..HEAD)" >> RELEASE_NOTES.md
+        echo "" >> RELEASE_NOTES.md
+        echo "### Additional Notes" >> RELEASE_NOTES.md
+        echo "- Build improvements." >> RELEASE_NOTES.md
+        echo "- Known issues: None." >> RELEASE_NOTES.md
+        echo "release_notes=$(cat RELEASE_NOTES.md)" >> $GITHUB_ENV
 
-      - name: Generate SHA256 Checksum
-        id: checksum
-        run: |
-           sha256sum ${{ env.jar_file }} > checksum.txt
-           echo "checksum=$(cat checksum.txt)" >> $GITHUB_ENV
+    - name: Find Main JAR File
+      id: find_jar
+      run: |
+        JAR_FILE=$(ls target/xdagj-native-randomx-*.jar | grep -v sources | grep -v javadoc | head -n 1 || echo "")
+        if [ -z "$JAR_FILE" ]; then
+          echo "Error: No main JAR file found!"
+          exit 1
+        fi
+        echo "Found JAR file: $JAR_FILE"
+        echo "jar_file=$JAR_FILE" >> $GITHUB_ENV
 
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          tag_name: v${{ env.VERSION }}
-          release_name: xdagj-native-randomx v${{ env.VERSION }}
-          body: |
-              ${{ env.release_notes }}
-              ### Checksums
+    - name: Generate SHA256 Checksum
+      id: checksum
+      run: |
+        if [ "${{ matrix.os }}" == "macos-latest" ]; then
+          shasum -a 256 ${{ env.jar_file }} > checksum.txt
+        else
+          sha256sum ${{ env.jar_file }} > checksum.txt
+        fi
+        echo "checksum=$(cat checksum.txt)" >> $GITHUB_ENV
 
-              ${{ env.checksum }}
-          draft: true
+    - name: Create Release
+      id: create_release
+      uses: actions/create-release@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      with:
+        tag_name: v${{ env.VERSION }}
+        release_name: xdagj-native-randomx v${{ env.VERSION }}
+        body: |
+          ${{ env.release_notes }}
+          ### Checksums
 
-      - name: Upload JAR with Native Libraries
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ${{ env.jar_file }}
-          asset_name: xdagj-native-randomx.jar
-          asset_content_type: application/java-archive
+          ${{ env.checksum }}
+        draft: false
+
+    - name: Upload JAR with Native Libraries
+      uses: actions/upload-release-asset@v1
+      env:
+        GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
+      with:
+        upload_url: ${{ steps.create_release.outputs.upload_url }}
+        asset_path: ${{ env.jar_file }}
+        asset_name: xdagj-native-randomx.jar
+        asset_content_type: application/java-archive
