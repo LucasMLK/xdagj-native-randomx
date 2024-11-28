@@ -152,6 +152,9 @@ jobs:
 
     - name: List Target Directory
       run: ls -al target/
+
+    - name: Rename output file
+      run: mv "target/xdagj-native-randomx-${{ env.VERSION }}.jar" "target/xdagj-native-randomx.jar"
     
     - name: Find Main JAR File
       id: find_jar
@@ -182,6 +185,6 @@ jobs:
 
     - name: Upload JAR using gh CLI
       run: |
-        gh release upload "v${{ env.VERSION }}" ${{ env.jar_file }}=xdagj-native-randomx.jar --clobber
+        gh release upload "v${{ env.VERSION }}" xdagj-native-randomx.jar --clobber
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
