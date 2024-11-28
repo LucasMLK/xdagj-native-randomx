@@ -126,6 +126,12 @@ jobs:
           echo "Listing target directory contents:"
           ls -al target/
 
+      - name: Upload JAR
+        uses: actions/upload-artifact@v4
+        with:
+          name: xdagj-native-randomx-jar
+          path: target/xdagj-native-randomx-*.jar
+
   release:
     runs-on: ubuntu-latest
     needs: build-java
@@ -151,6 +157,12 @@ jobs:
         echo "- Build improvements." >> RELEASE_NOTES.md
         echo "- Known issues: None." >> RELEASE_NOTES.md
 
+    - name: Download JAR Artifact
+      uses: actions/download-artifact@v4
+      with:
+        name: xdagj-native-randomx-jar
+        path: target/
+    
     - name: Debug Maven Build Output
       run: |
         echo "Listing target directory contents:"
