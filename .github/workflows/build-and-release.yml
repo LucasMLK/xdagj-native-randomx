@@ -21,31 +21,31 @@ jobs:
           - os: ubuntu-latest
             arch: x86_64
             cmake_args: '-DARCH=x86_64 -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS="-fPIC"'
-            artifact_name: 'native-libs-linux-x86_64'
+            artifact_name: 'librandomx_linux_x86_64.so'
             output_lib: 'librandomx_linux_x86_64.so'
           # Linux - amd64
           - os: ubuntu-latest
             arch: amd64
             cmake_args: '-DARCH=native -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS="-fPIC"'
-            artifact_name: 'native-libs-linux-amd64'
+            artifact_name: 'librandomx_linux_amd64.so'
             output_lib: 'librandomx_linux_amd64.so'
           # macOS - x86_64
           - os: macos-latest
             arch: x86_64
             cmake_args: '-DARCH=x86_64 -DBUILD_SHARED_LIBS=ON'
-            artifact_name: 'native-libs-macos-x86_64'
+            artifact_name: 'librandomx_macos_x86_64.dylib'
             output_lib: 'librandomx_macos_x86_64.dylib'
           # macOS - aarch64
           - os: macos-latest
             arch: aarch64
             cmake_args: '-DARCH=arm64 -DBUILD_SHARED_LIBS=ON'
-            artifact_name: 'native-libs-macos-aarch64'
+            artifact_name: 'librandomx_macos_aarch64.dylib'
             output_lib: 'librandomx_macos_aarch64.dylib'
           # Windows - x86_64
           - os: windows-latest
             arch: x86_64
             cmake_args: '-G "MinGW Makefiles" -DARCH=native -DBUILD_SHARED_LIBS=ON'
-            artifact_name: 'native-libs-windows-x86_64'
+            artifact_name: 'librandomx_windows_x86_64.dll'
             output_lib: 'librandomx_windows_x86_64.dll'
         exclude:
           # Exclude unsupported combinations
@@ -95,7 +95,7 @@ jobs:
         uses: actions/upload-artifact@v4
         with:
           name: ${{ matrix.artifact_name }}
-          path: src/main/resources/native/
+          path: src/main/resources/native/${{ matrix.output_lib }}
 
   build-java:
     runs-on: ubuntu-latest
