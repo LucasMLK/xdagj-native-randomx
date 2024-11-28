@@ -135,6 +135,12 @@ jobs:
         uses: actions/download-artifact@v4
         with:
           name: xdagj-native-randomx-jar
+          path: target/
+          
+      - name: Debug Maven Build Output
+        run: |
+          echo "Listing target directory contents:"
+          ls -al target/
 
       - name: Create Release
         id: create_release
