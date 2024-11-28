@@ -151,7 +151,6 @@ jobs:
         echo "### Additional Notes" >> RELEASE_NOTES.md
         echo "- Build improvements." >> RELEASE_NOTES.md
         echo "- Known issues: None." >> RELEASE_NOTES.md
-        echo "release_notes=$(cat RELEASE_NOTES.md)" >> $GITHUB_ENV
 
     - name: Find Main JAR File
       id: find_jar
@@ -182,11 +181,7 @@ jobs:
       with:
         tag_name: v${{ env.VERSION }}
         release_name: xdagj-native-randomx v${{ env.VERSION }}
-        body: |
-          ${{ env.release_notes }}
-          ### Checksums
-
-          ${{ env.checksum }}
+        body_path: RELEASE_NOTES.md
         draft: false
 
     - name: Upload JAR with Native Libraries
