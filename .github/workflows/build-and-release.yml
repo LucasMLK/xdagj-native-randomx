@@ -119,12 +119,7 @@ jobs:
           cache: 'maven'
 
       - name: Build with Maven
-        run: mvn clean package -DskipTests
-
-      - name: Debug Maven Build Output
-        run: |
-          echo "Listing target directory contents:"
-          ls -al target/
+        run: mvn clean package
 
       - name: Upload JAR
         uses: actions/upload-artifact@v4
@@ -162,11 +157,6 @@ jobs:
       with:
         name: xdagj-native-randomx-jar
         path: target/
-    
-    - name: Debug Maven Build Output
-      run: |
-        echo "Listing target directory contents:"
-        ls -al target/
     
     - name: Find Main JAR File
       id: find_jar
