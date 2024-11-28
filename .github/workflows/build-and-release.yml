@@ -188,6 +188,6 @@ jobs:
       
     - name: Upload JAR using gh CLI
       run: |
-        gh release upload "v${{ env.VERSION }}" xdagj-native-randomx.jar --clobber
+        gh release upload "v${{ env.VERSION }}" target/xdagj-native-randomx.jar --clobber
       env:
         GITHUB_TOKEN: ${{ secrets.RELEASE_TOKEN }}
