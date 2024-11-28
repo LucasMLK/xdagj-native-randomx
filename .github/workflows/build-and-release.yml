@@ -121,6 +121,11 @@ jobs:
       - name: Build with Maven
         run: mvn clean package -DskipTests
 
+      - name: Debug Maven Build Output
+        run: |
+          echo "Listing target directory contents:"
+          ls -al target/
+
   release:
     runs-on: ubuntu-latest
     needs: build-java
