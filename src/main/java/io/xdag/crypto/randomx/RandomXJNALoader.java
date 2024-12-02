@@ -24,6 +24,7 @@
 package io.xdag.crypto.randomx;
 
 import com.sun.jna.Native;
+import org.apache.commons.lang3.StringUtils;
 
 import java.io.File;
 import java.io.InputStream;
@@ -69,8 +70,12 @@ public final class RandomXJNALoader {
             libFileName = "native/" + libraryName + "_windows_" + arch + ".dll";
         } else if (os.contains("mac")) {
             libFileName = "native/" + libraryName + "_macos_" + arch + ".dylib";
-        } else if (os.contains("linux")) {
-            libFileName = "native/" + libraryName + "_linux_" + arch + ".so";
+        }  else if (StringUtils.contains(os, "linux")) {
+            if(StringUtils.containsAny(arch, "amd64", "x86_64")) {
+                libFileName = "native/" + libraryName + "_linux_x86_64.so";
+            } else {
+                throw new UnsupportedOperationException("Unsupported OS: " + os);
+            }
         } else {
             throw new UnsupportedOperationException("Unsupported OS: " + os);
         }

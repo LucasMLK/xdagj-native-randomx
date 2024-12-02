@@ -23,12 +23,6 @@ jobs:
             cmake_args: '-DARCH=x86_64 -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS="-fPIC"'
             artifact_name: 'librandomx_linux_x86_64.so'
             output_lib: 'librandomx_linux_x86_64.so'
-          # Linux - amd64
-          - os: ubuntu-latest
-            arch: amd64
-            cmake_args: '-DARCH=native -DBUILD_SHARED_LIBS=ON -DCMAKE_C_FLAGS="-fPIC"'
-            artifact_name: 'librandomx_linux_amd64.so'
-            output_lib: 'librandomx_linux_amd64.so'
           # macOS - x86_64
           - os: macos-latest
             arch: x86_64
@@ -51,6 +45,8 @@ jobs:
           # Exclude unsupported combinations
           - os: ubuntu-latest
             arch: aarch64
+          - os: ubuntu-latest
+            arch: amd64
           - os: macos-latest
             arch: amd64
           - os: windows-latest
@@ -152,6 +148,9 @@ jobs:
 
     - name: List Target Directory
       run: ls -al target/
+
+    - name: Uname Arch Test
+      run: uname -m
     
     - name: Find Main JAR File
       id: find_jar

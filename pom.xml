@@ -28,6 +28,7 @@
         <maven.compiler.encoding>UTF-8</maven.compiler.encoding>
         <maven.compiler.source>17</maven.compiler.source>
         <maven.compiler.target>17</maven.compiler.target>
+        <commons-lang3.version>3.17.0</commons-lang3.version>
         <jna.version>5.15.0</jna.version>
         <lombok.version>1.18.34</lombok.version>
         <junit.version>5.10.3</junit.version>
@@ -212,6 +213,12 @@
     </distributionManagement>
 
     <dependencies>
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+            <version>${commons-lang3.version}</version>
+        </dependency>
+
         <dependency>
             <groupId>net.java.dev.jna</groupId>
             <artifactId>jna</artifactId>
