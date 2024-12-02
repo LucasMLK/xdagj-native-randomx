@@ -85,7 +85,6 @@ public final class RandomXJNALoader {
             if (libStream == null) {
                 throw new IllegalStateException("Native library not found: " + libFileName);
             }
-            System.out.println(libFileName);
             File tempFile = File.createTempFile(libraryName, libFileName.substring(libFileName.lastIndexOf('.')));
             tempFile.deleteOnExit();
             Files.copy(libStream, tempFile.toPath(), StandardCopyOption.REPLACE_EXISTING);
