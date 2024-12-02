@@ -4,11 +4,9 @@ on:
   push:
     branches:
       - master
-      - develop
   pull_request:
     branches:
       - master
-      - develop
 jobs:
   build-randomx:
     runs-on: ${{ matrix.os }}
@@ -145,12 +143,6 @@ jobs:
       with:
         name: xdagj-native-randomx-jar
         path: target/
-
-    - name: List Target Directory
-      run: ls -al target/
-
-    - name: Uname Arch Test
-      run: uname -m
     
     - name: Find Main JAR File
       id: find_jar
@@ -181,9 +173,6 @@ jobs:
 
     - name: Rename output file
       run: mv "target/xdagj-native-randomx-${{ env.VERSION }}.jar" "target/xdagj-native-randomx.jar"
-
-    - name: List Target Directory
-      run: ls -al target/
       
     - name: Upload JAR using gh CLI
       run: |
